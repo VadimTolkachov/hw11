@@ -2,20 +2,22 @@ from collections import UserDict
 
 
 class Field:
-    def __init__(self, name) -> None:
-        self.__name = None
-        self.name = name
+    def __init__(self, value) -> None:
+        self.__value = None
+        self.value = value
         
 
     @property
-    def name(self):
-        return str(self.__name)
-    
-    @name.setter
-    def name(self, name:str):
-        if name[0].islower():
+    def value(self):
+        return self.__value
+    @value.setter
+    def value(self, value: str):
+        if value[0].islower():
             raise ValueError
-        self.__name = name
+        self.__value = value
+
+    def __str__(self) -> str:
+        return self.value
 
 
         
@@ -201,6 +203,6 @@ def main():
 
 if __name__ == '__main__':
    #main()
-   a = Record(Name('Vadym'), Phone('+380500332595'))
+   a = Record(Name('Vadym'))
    print(a.name.value)
     

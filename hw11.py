@@ -1,20 +1,37 @@
 from collections import UserDict
+import datetime
 
 
 class Field:
     def __init__(self, value) -> None:
-        self.__value = None
         self.value = value
-        
 
+
+    
     @property
     def value(self):
         return self.__value
+
     @value.setter
-    def value(self, value: str):
-        if value[0].islower():
-            raise ValueError
-        self.__value = value
+    def value(self, value):
+        if value is None:
+            self.__value = value
+        else:
+            self.__value = self.__set_date(value)
+
+    def __set_date(self, bday):
+        date_types = ["%d/%m/%Y", "%d/%m"]
+        for date_type in date_types:
+            try:
+                self.__value = datetime.datetime.strptime(bday, date_type).date()
+                return self.__value
+            except ValueError:
+                pass
+        raise TypeError("Incorrect date format, should be dd/mm/yyyy or dd/mm")
+      
+    
+        
+        
 
     def __str__(self) -> str:
         return self.value
@@ -24,11 +41,36 @@ class Field:
 class Name(Field):
     pass
 
-class Phone():
-    pass
+class Phone(Field):
+    def __init__(self, value) -> None:
+        self.value = value
+        
 
-class Birthday():
-    pass
+    @property
+    def value(self):
+        return self.__value
+    @value.setter
+    def value(self, value: str):
+        if value.isalpha() or not value.startswith('+380') or len(value) != 13:
+            raise ValueError
+        self.__value = value
+    
+
+class Birthday(Field):
+    def __init__(self, value) -> None:
+        self.value = value
+
+    @property
+    def value(self):
+        return self.__value
+    @value.setter
+    def value(self, value: str):
+        if self.value != '29.09.96':
+            raise ValueError
+        self.__value = value
+
+    def __str__(self) -> str:
+        return self.value
 
 
 class Record:
@@ -105,20 +147,23 @@ def input_errors(func):
     return inner
 
 
-@input_errors
+#@input_errors
 def add(*args:tuple):
     tupl = args[0].split()
     name = Name(tupl[1])
-    return name
-    """phone = Phone(tupl[2])
-    rec = Record(name, [phone])
+    phone = Phone(tupl[2])
+    Bp = None
+    if len(tupl) == 4:
+        Bp = Birthday(tupl[3])
+
+    rec = Record(name, [phone], Bp)
     
     for key_contact in contacts:
         if key_contact == name.value:
             return contacts[key_contact].add_phone(name, phone)
         
     contacts.add_contact(rec)
-    return 'I add new contact'"""
+    return 'I add new contact'
 
 @input_errors
 def dell_phone(*args:tuple):

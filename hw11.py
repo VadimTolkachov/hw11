@@ -109,7 +109,8 @@ def input_errors(func):
 def add(*args:tuple):
     tupl = args[0].split()
     name = Name(tupl[1])
-    phone = Phone(tupl[2])
+    return name
+    """phone = Phone(tupl[2])
     rec = Record(name, [phone])
     
     for key_contact in contacts:
@@ -117,7 +118,7 @@ def add(*args:tuple):
             return contacts[key_contact].add_phone(name, phone)
         
     contacts.add_contact(rec)
-    return 'I add new contact'
+    return 'I add new contact'"""
 
 @input_errors
 def dell_phone(*args:tuple):
@@ -202,7 +203,6 @@ def main():
         print(comand)
 
 if __name__ == '__main__':
-   #main()
-   a = Record(Name('Vadym'))
-   print(a.name.value)
+   main()
+   
     

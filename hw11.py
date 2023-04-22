@@ -201,6 +201,6 @@ def main():
 
 if __name__ == '__main__':
    #main()
-   a = Record('Vadym', '+380500332595')
+   a = Record(Name('Vadym'), Phone('+380500332595'))
    print(a.name.value)
     

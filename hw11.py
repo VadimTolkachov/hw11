@@ -132,10 +132,10 @@ class AddressBook(UserDict):
         lst_slice = lst[self.index:self.index + int(step)]
         if self.index < len(lst):
             self.index += int(step)
-
+        result = '\n'.join(lst_slice)
         
 
-        return lst_slice
+        return result
         
         
     
@@ -277,7 +277,8 @@ def helper():
               'bdadd': 'bdadd name 29/09/09',
               'deltadays': 'deltadays name',
               'phone': 'phone name',
-              'show all': 'show all (Show all contacts)'}
+              'show all': 'show all (Show all contacts)',
+              'iterator': 'iterator 2'}
     print('Hello. I`m BOT. \nI have this comands.')
     print()
     print(*[f'{key}: {val}' for key, val in comands.items()], sep='\n')

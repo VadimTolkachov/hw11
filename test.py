@@ -1,22 +1,27 @@
-class Name:
-    def __init__(self, name) -> None:
-        self.__name = None
-        self.name = name
+class Iter:
+    def __init__(self, lst = []):
+        self.lst = lst
+        self.light = 3
+        if self.light == 0:
+            self.light = 1
+        self.iter = 0
+    def __next__(self):
+        result = self.lst[self.iter:self.iter+self.light]
+        if self.iter < len(self.lst):
+            self.iter += self.light
         
-
-    @property
-    def name(self):
-        return str(self.__name)
-    
-    @name.setter
-    def name(self, name:str):
-        if name[0].islower():
-            raise KeyError()
-        self.__name = name
-
-
-a = Name('vadim')
-print(a.name)
+            return result
         
-
+        else:
+            raise StopIteration
     
+    def __iter__(self):
+        return self
+        
+        
+    
+    
+
+a = Iter([i for i in range( 5)])
+
+print(next(a))

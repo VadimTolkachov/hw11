@@ -1,12 +1,37 @@
 from collections import UserDict
-import datetime
+from datetime import datetime
+import re
 
 
 class Field:
-    def __init__(self, value) -> None:
+    def __init__(self, value):
         self.value = value
+    
+    def __str__(self) -> str:
+        return str(self.value)
 
 
+        
+class Name(Field):
+    pass
+
+class Phone(Field):
+      
+
+    @property
+    def value(self):
+        return self.__value
+    @value.setter
+    def value(self, value: str):
+        if value.isalpha() or not value.startswith('+380') or len(value) != 13:
+            raise ValueError
+        self.__value = value
+
+    def __repr__(self) -> str:
+        return self.value
+    
+
+class Birthday(Field):
     
     @property
     def value(self):
@@ -19,71 +44,37 @@ class Field:
         else:
             self.__value = self.__set_date(value)
 
-    def __set_date(self, bday):
+    @staticmethod
+    def __set_date(bday: str):
         date_types = ["%d/%m/%Y", "%d/%m"]
         for date_type in date_types:
             try:
-                self.__value = datetime.datetime.strptime(bday, date_type).date()
-                return self.__value
+                date = datetime.strptime(bday, date_type).date()
+                return date
             except ValueError:
                 pass
         raise TypeError("Incorrect date format, should be dd/mm/yyyy or dd/mm")
-      
-    
-        
         
 
     def __str__(self) -> str:
-        return self.value
-
-
-        
-class Name(Field):
-    pass
-
-class Phone(Field):
-    def __init__(self, value) -> None:
-        self.value = value
-        
-
-    @property
-    def value(self):
-        return self.__value
-    @value.setter
-    def value(self, value: str):
-        if value.isalpha() or not value.startswith('+380') or len(value) != 13:
-            raise ValueError
-        self.__value = value
-    
-
-class Birthday(Field):
-    def __init__(self, value) -> None:
-        self.value = value
-
-    @property
-    def value(self):
-        return self.__value
-    @value.setter
-    def value(self, value: str):
-        if self.value != '29.09.96':
-            raise ValueError
-        self.__value = value
-
-    def __str__(self) -> str:
-        return self.value
+        return str(self.value)
 
 
 class Record:
-    def __init__(self, name: Name, phones: list[Phone] = [], birthday: Birthday = None) -> None:
+    def __init__(self, name: Name, phones: list[Phone] = [], birthday = None) -> None:
         self.name = name
         self.phones = phones
         self.birthday = birthday
 
     def days_to_birthday(self):
-        if self.birthday:
-            return self.birthday
-        else:
-            return 'Day not set!'
+        self.day = int(self.birthday.split('/')[0])
+        self.month = int(self.birthday.split('/')[1])
+        today = datetime.today()
+        bd_date = datetime(day= self.day, month= self.month, year= today.year)
+        count_days = bd_date-today
+        return f'{count_days.days} days'
+
+        
 
 
     def add_phone(self, name: Name, phone: Phone):
@@ -115,7 +106,7 @@ class Record:
 
 
 class AddressBook(UserDict):
-
+    index = 0
     def add_contact(self, record: Record):
         self.data[record.name.value] = record
 
@@ -131,10 +122,27 @@ class AddressBook(UserDict):
                 contacts.pop(contact)
                 return f"I removed contact{name}."
         return 'I dont find contact.'
+    
+
+
+
+
+    def iteranor(self, step):
+        lst = [f'{key}: {val.phones}' for key, val in contacts.items()]
+        lst_slice = lst[self.index:self.index + int(step)]
+        if self.index < len(lst):
+            self.index += int(step)
+
+        
+
+        return lst_slice
+        
+        
+    
     def __str__(self):
         result = []
         for record in self.data.values():
-            result.append(f"{record.name.value}: {', '.join([phone.value for phone in record.phones])}")
+            result.append(f"{record.name.value}: {', '.join([phone.value for phone in record.phones])} Birthday: {record.birthday}")
         return "\n".join(result)
 
 
@@ -147,23 +155,32 @@ def input_errors(func):
     return inner
 
 
-#@input_errors
+@input_errors
 def add(*args:tuple):
     tupl = args[0].split()
     name = Name(tupl[1])
     phone = Phone(tupl[2])
     Bp = None
     if len(tupl) == 4:
-        Bp = Birthday(tupl[3])
+        Bp = tupl[-1]
 
     rec = Record(name, [phone], Bp)
+    if name.value in contacts:
+        for key_contact in contacts:
+            if key_contact == name.value and phone.value not in contacts[key_contact].phones:
+                return contacts[key_contact].add_phone(name, phone)
+    else:
+        
+        contacts.add_contact(rec)
+        return 'I add new contact'
     
+def bdadd(*args):
+    tupl = args[0].split()
+    name = Name(tupl[1])
+    bd = Birthday(tupl[2])
     for key_contact in contacts:
         if key_contact == name.value:
-            return contacts[key_contact].add_phone(name, phone)
-        
-    contacts.add_contact(rec)
-    return 'I add new contact'
+            contacts[key_contact].birthday = tupl[2]
 
 @input_errors
 def dell_phone(*args:tuple):
@@ -194,6 +211,15 @@ def change(*args:tuple):
     rec = contacts.get(name.value)
     return rec.change(name, old_phone, new_phone)
 
+def delta_days(*args):
+    tupl = args[0].split()
+    name = Name(tupl[1])
+    return contacts[name.value].days_to_birthday()
+
+def iterator(*args):
+    tupl = args[0].split()
+    step = tupl[1]
+    return contacts.iteranor(step)
 
 def phone(*args:tuple):
     tupl = args[0].split()
@@ -226,6 +252,12 @@ def hendler(text:str):
     elif text.startswith('dell'):
         return dell_phone(text)
     
+    elif text.startswith('bdadd'):
+        return bdadd(text)
+    elif text.startswith('deltadays'):
+        return delta_days(text)
+    elif text.startswith('iterator'):
+        return iterator(text)
     
     elif text.startswith('phone'):
         return phone(text)
@@ -236,7 +268,22 @@ def hendler(text:str):
         return comand_enoter()
     
 contacts = AddressBook()
+def helper():
+    comands = {'Hello': "How can I help you?",
+              'add': 'add name number_phone 29/09/1996 (Date is not required)',
+              'change': 'change name old_number_phone new_number_phone',
+              'dellcontact': 'dellcontact name',
+              'dell': 'dell name number_phone',
+              'bdadd': 'bdadd name 29/09/09',
+              'deltadays': 'deltadays name',
+              'phone': 'phone name',
+              'show all': 'show all (Show all contacts)'}
+    print('Hello. I`m BOT. \nI have this comands.')
+    print()
+    print(*[f'{key}: {val}' for key, val in comands.items()], sep='\n')
+
 def main():
+    helper()
 
     while True:
         input_comand = input('Pleace, enter comand:').lower()
@@ -246,8 +293,16 @@ def main():
 
         comand = hendler(input_comand)
         print(comand)
+        
+        
+        
 
 if __name__ == '__main__':
-   main()
+    main()
+    
+   
+   
+              
+   
    
     
